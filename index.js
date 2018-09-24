@@ -28,7 +28,6 @@ const createStore = reducer => {
   }
 }
 
-
 const INCREMENT = "INCREMENT"
 const DECREMENT = "DECREMENT"
 
@@ -47,7 +46,17 @@ const counter = (state=0, action) => {
   }
 }
 
-const store = createStore(counter)
+const combineReducers = reducers => (state={}, action) => (
+  Object.entries(reducers).reduce((acc, [name, reducer]) => (
+    Object.assign({}, acc, {[name]: reducer(state[name], action)})
+  ), {})
+)
+
+const reducer = combineReducers({
+  counter,
+})
+
+const store = createStore(reducer)
 
 const counterP = document.getElementById("counter")
 const incrementButton = document.getElementById("increment")
@@ -57,5 +66,6 @@ decrementButton.addEventListener("click", () => store.dispatch(decrementCounter(
 
 store.subscribe(() => {
   const state = store.getState()
-  counterP.innerHTML = state
+  console.log(state)
+  counterP.innerHTML = state.counter
 })
