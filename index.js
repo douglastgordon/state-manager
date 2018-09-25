@@ -37,7 +37,6 @@ const actionCreators = {
 }
 
 const counter = (state=0, action) => {
-  console.log(state, action)
   switch (action.type) {
     case INCREMENT:
       return state + 1
@@ -59,7 +58,19 @@ const reducer = combineReducers({
   counter,
 })
 
-const store = createStore(reducer)
+const logger = store => next => action => {
+  console.table(store.getState())
+  return next(action)
+}
+
+const applyMiddleware = middleware => createStore => reducer => {
+  const store = createStore(reducer)
+  return Object.assign({}, store, {
+    dispatch: action => middleware(store)(store.dispatch)(action),
+  })
+}
+
+const store = applyMiddleware(logger)(createStore)(reducer)
 
 const bindActionCreators = (actionCreators, dispatch) => {
   return Object.entries(actionCreators).reduce((acc, [name, func]) => {
@@ -73,6 +84,7 @@ const {
 } = bindActionCreators(actionCreators, store.dispatch)
 
 
+
 const counterP = document.getElementById("counter")
 const incrementButton = document.getElementById("increment")
 const decrementButton = document.getElementById("decrement")
@@ -81,6 +93,5 @@ decrementButton.addEventListener("click", decrementCounter)
 
 store.subscribe(() => {
   const state = store.getState()
-  console.log(state)
   counterP.innerHTML = state.counter
 })
